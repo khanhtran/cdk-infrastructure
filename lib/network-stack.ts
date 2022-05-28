@@ -10,7 +10,7 @@ export class NetworkStack extends Stack {
       cidr: "10.0.0.0/16",
       vpcName: "app-vpc",
       natGateways: 0,
-      maxAzs: 2,
+      maxAzs: 1,
       subnetConfiguration: [
         {
           name: "app-public-subnet",
