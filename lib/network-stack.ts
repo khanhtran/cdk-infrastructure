@@ -32,15 +32,34 @@ export class NetworkStack extends Stack {
       );
     }
 
+    const appSG = new ec2.SecurityGroup(this, 'app-sg', {
+      securityGroupName: 'app-security-group',
+      vpc,
+      allowAllOutbound: true,
+      description: 'security group for a web server',
+    });
+
+    appSG.addIngressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.tcp(22),
+      'allow SSH access from anywhere',
+    );
+
     new CfnOutput(this, "vpc-output", {
       exportName: "appVpcId",
       value: vpc.vpcId,
     });
-    vpc.publicSubnets.forEach((subnet, index) => {
-      new CfnOutput(this, `public-subnet-output-${index}`, {
-        exportName: `appPublicSubnetId${index}`,
-        value: subnet.subnetId,
-      });
+    new CfnOutput(this, "az-output", {
+      exportName: "appVpcAzs",
+      value: vpc.availabilityZones.join(',')
+    });
+    new CfnOutput(this, "sg-output", {
+      exportName: "appSecurityGroupId",
+      value: appSG.securityGroupId,
+    });
+    new CfnOutput(this, `public-subnets-output`, {
+      exportName: `appPublicSubnetIds`,
+      value: vpc.publicSubnets.map(s => s.subnetId).join(',')
     });
   }
 }

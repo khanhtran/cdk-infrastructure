@@ -1,16 +1,14 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import { Stack, StackProps } from "aws-cdk-lib";
+import { Construct } from "constructs";
+import { AppInstance } from "./construct/app-instance";
+import { readFileSync } from "fs";
 
 export class EC2Stack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
-
-    // The code that defines your stack goes here
-
-    // example resource
-    // const queue = new sqs.Queue(this, 'CdkInfrastructureQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    new AppInstance(this, 'eks-master', {
+      instanceName: 'master',
+      userData: readFileSync('./scripts/kube-master.sh', 'utf-8')
+    })
   }
 }
