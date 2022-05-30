@@ -10,5 +10,10 @@ export class EC2Stack extends Stack {
       instanceName: 'master',
       userData: readFileSync('./scripts/kube-master.sh', 'utf-8')
     })
+
+    new AppInstance(this, 'eks-worker1', {
+      instanceName: 'worker1',
+      userData: readFileSync('./scripts/kube-worker.sh', 'utf-8')
+    })
   }
 }

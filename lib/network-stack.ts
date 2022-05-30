@@ -1,6 +1,7 @@
 import { CfnOutput, Tag, Aspects, Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
+import { IVpc } from "aws-cdk-lib/aws-ec2";
 
 export class NetworkStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -32,34 +33,51 @@ export class NetworkStack extends Stack {
       );
     }
 
-    const appSG = new ec2.SecurityGroup(this, 'app-sg', {
-      securityGroupName: 'app-security-group',
+    this.createAppSecurityGroup(vpc);
+
+    this.output(vpc);
+  }
+
+  private createAppSecurityGroup(vpc: IVpc) {
+    const appSG = new ec2.SecurityGroup(this, "app-sg", {
+      securityGroupName: "app-security-group",
       vpc,
       allowAllOutbound: true,
-      description: 'security group for a web server',
+      description: "security group for a web server",
     });
+
 
     appSG.addIngressRule(
       ec2.Peer.anyIpv4(),
       ec2.Port.tcp(22),
-      'allow SSH access from anywhere',
+      "allow SSH access from anywhere"
     );
 
+    appSG.addIngressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.icmpPing(),
+      "allow ping from anywhere"
+    );
+
+    new CfnOutput(this, "sg-output", {
+      exportName: "appSecurityGroupId",
+      value: appSG.securityGroupId,
+    });
+  }
+
+  private output(vpc: IVpc) {
     new CfnOutput(this, "vpc-output", {
       exportName: "appVpcId",
       value: vpc.vpcId,
     });
     new CfnOutput(this, "az-output", {
       exportName: "appVpcAzs",
-      value: vpc.availabilityZones.join(',')
+      value: vpc.availabilityZones.join(","),
     });
-    new CfnOutput(this, "sg-output", {
-      exportName: "appSecurityGroupId",
-      value: appSG.securityGroupId,
-    });
+
     new CfnOutput(this, `public-subnets-output`, {
       exportName: `appPublicSubnetIds`,
-      value: vpc.publicSubnets.map(s => s.subnetId).join(',')
+      value: vpc.publicSubnets.map((s) => s.subnetId).join(","),
     });
   }
 }
